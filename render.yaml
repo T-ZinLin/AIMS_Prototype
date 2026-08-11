@@ -10,7 +10,10 @@ services:
     name: aims-backend
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    # Re-derive every manifest-owned cache entry during the build. This makes
+    # a manifest edit deploy-safe even if a developer forgot to run the seeder
+    # locally, and it never needs an API key or network call beyond pip itself.
+    buildCommand: pip install -r requirements.txt && python scripts/seed_demo_cache.py --reset
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:

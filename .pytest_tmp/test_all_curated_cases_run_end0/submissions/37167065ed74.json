@@ -1,0 +1,176 @@
+{
+  "id": "37167065ed74",
+  "question_id": "q1",
+  "image_filename": "37167065ed74.png",
+  "source_page": 1,
+  "source_page_count": 1,
+  "transcription": {
+    "steps": [
+      {
+        "index": 1,
+        "latex": "x^2 - 5x + 6 = (x-2)(x-3) = 0",
+        "confidence": "high",
+        "edited_by_human": false
+      },
+      {
+        "index": 2,
+        "latex": "x = 2 \\text{ or } x = 3",
+        "confidence": "high",
+        "edited_by_human": false
+      }
+    ],
+    "notes": "Handwriting is clear; no crossings-out observed."
+  },
+  "confirmed_steps": [
+    {
+      "index": 1,
+      "latex": "x^2 - 5x + 6 = (x-2)(x-3) = 0",
+      "confidence": "high",
+      "edited_by_human": false
+    },
+    {
+      "index": 2,
+      "latex": "x = 2 \\text{ or } x = 3",
+      "confidence": "high",
+      "edited_by_human": false
+    }
+  ],
+  "verification": {
+    "steps": [
+      {
+        "index": 1,
+        "parsed": true,
+        "solutions": [
+          "2",
+          "3"
+        ],
+        "equivalent_to_previous": null,
+        "divergence": null,
+        "lost_roots": [],
+        "gained_roots": [],
+        "note": ""
+      },
+      {
+        "index": 2,
+        "parsed": true,
+        "solutions": [
+          "2",
+          "3"
+        ],
+        "equivalent_to_previous": true,
+        "divergence": null,
+        "lost_roots": [],
+        "gained_roots": [],
+        "note": ""
+      }
+    ],
+    "final_answer_correct": true,
+    "final_answer_verified": true,
+    "model_solutions": [
+      "2",
+      "3"
+    ],
+    "candidate_misconceptions": [],
+    "first_divergence_index": null,
+    "all_steps_parsed": true
+  },
+  "marks": {
+    "criteria": [
+      {
+        "criterion_id": "C1",
+        "proposed": 1,
+        "max": 1,
+        "justification": "Step 1 presents the equation with zero on one side, suitable for factorising and applying the zero-product principle.",
+        "evidence_step": 1,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C2",
+        "proposed": 3,
+        "max": 3,
+        "justification": "Step 1 factorises the quadratic and Step 2 applies the zero-product principle, giving both roots with none lost or gained.",
+        "evidence_step": 2,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C3",
+        "proposed": 2,
+        "max": 2,
+        "justification": "The factors in Step 1 produce the two roots stated in Step 2, matching the symbolic verification.",
+        "evidence_step": 2,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C4",
+        "proposed": 1,
+        "max": 1,
+        "justification": "Step 2 states both solutions, x = 2 and x = 3, matching the verified solution set.",
+        "evidence_step": 2,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C5",
+        "proposed": 1,
+        "max": 1,
+        "justification": "Steps 1 and 2 are concise and logically ordered from factorisation to the two roots.",
+        "evidence_step": 2,
+        "overridden": false
+      }
+    ],
+    "misconceptions": [],
+    "warnings": [],
+    "total_proposed": 8,
+    "total_max": 8
+  },
+  "feedback": {
+    "what_went_well": "You factorised the quadratic correctly in Step 1 and used the zero-product principle in Step 2 to state both roots. The symbolic check confirms that no solutions were lost or gained, so this earns full marks.",
+    "what_went_wrong": "Nothing in your mathematics cost you a mark. For maximum clarity, you could split the chained equality in Step 1 into the original equation and the factorised equation on separate lines.",
+    "how_to_improve": "Keep the same method, but write x^2 - 5x + 6 = 0 and then (x - 2)(x - 3) = 0 on separate lines. That makes each transformation especially easy to audit.",
+    "references": [
+      "Notes §1 — factorising quadratics",
+      "Notes §2 — the zero-product principle"
+    ]
+  },
+  "practice": [
+    {
+      "prompt_latex": "Solve $x^2 + 13x + 40 = 0$.",
+      "answer_latex": "x = -8, \\; x = -5",
+      "misconception_tag": "sign_error",
+      "template_id": "quad_sign_check",
+      "question_type": "bare",
+      "framing_id": "bare",
+      "admissible_roots": [
+        "-8",
+        "-5"
+      ],
+      "rejected_note": ""
+    },
+    {
+      "prompt_latex": "Solve $x^2 - 4x - 5 = 0$.",
+      "answer_latex": "x = -1, \\; x = 5",
+      "misconception_tag": "sign_error",
+      "template_id": "quad_sign_check",
+      "question_type": "bare",
+      "framing_id": "bare",
+      "admissible_roots": [
+        "-1",
+        "5"
+      ],
+      "rejected_note": ""
+    },
+    {
+      "prompt_latex": "Solve $x^2 + 6x + 0 = 0$.",
+      "answer_latex": "x = -6, \\; x = 0",
+      "misconception_tag": "sign_error",
+      "template_id": "quad_sign_check",
+      "question_type": "bare",
+      "framing_id": "bare",
+      "admissible_roots": [
+        "-6",
+        "0"
+      ],
+      "rejected_note": ""
+    }
+  ],
+  "student_pseudonym": "Demo Student — Correct"
+}

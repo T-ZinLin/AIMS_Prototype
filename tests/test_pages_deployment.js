@@ -33,10 +33,23 @@ test("Pages config rejects missing, insecure, or non-origin URLs", () => {
 test("local frontend assets use repository-subpath-safe URLs", () => {
   const html = fs.readFileSync("static/index.html", "utf8");
 
-  for (const asset of ["./app.css", "./config.js", "./app.js"]) {
+  for (const asset of [
+    "./app.css",
+    "./config.js",
+    "./app.js",
+    "./vendor/tailwindcss-3.4.17.js",
+    "./vendor/katex-0.16.11/katex.min.css",
+    "./vendor/katex-0.16.11/katex.min.js",
+    "./vendor/chart.umd-4.4.4.min.js",
+  ]) {
     assert.ok(html.includes(asset), `missing relative asset reference: ${asset}`);
+    assert.ok(
+      fs.existsSync(`static/${asset.replace(/^\.\//, "")}`),
+      `referenced asset does not exist: ${asset}`,
+    );
   }
   assert.doesNotMatch(html, /\b(?:href|src)="\//);
+  assert.doesNotMatch(html, /\b(?:href|src)="https?:\/\//);
 });
 
 test("committed runtime config keeps local development same-origin", () => {

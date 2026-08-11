@@ -1,137 +1,134 @@
-"""Seed the LLM cache for the flagship typed-in demo, with no API key needed.
+"""Seed every curated offline demo case without calling Anthropic.
 
-The full pipeline normally needs two model calls (marking, then feedback). This
-script writes plausible, hand-authored responses for the q2 "divided through by
-x" case straight into `fixtures/llm_cache/`, keyed exactly as `app.llm` would
-key a real call. With those in place the entire flow runs under
-DEMO_MODE=offline: upload nothing, type the two steps, get marks, feedback and
-practice.
+The source of truth is ``fixtures/offline_demo_cases.json``. For each case this
+script runs the real deterministic verifier, builds the real marking and
+feedback prompts, derives the exact content-addressed keys used at runtime,
+and writes only the prepared AI responses:
 
-Two reasons this exists:
+* transcription for cases backed by a real fixture image;
+* marking;
+* feedback.
 
-1. It lets anyone run and demo the app before an API key is available, and lets
-   the frontend be exercised end to end in a browser.
-2. It is a live test of the offline mechanism itself. If the demo laptop loses
-   Wi-Fi at the venue, this is the code path that saves the presentation, so it
-   should be exercised early and often rather than trusted.
+Verification, misconception detection, practice generation, persistence and
+class aggregation are deliberately not cached.
 
-Run:  .venv/Scripts/python.exe scripts/seed_demo_cache.py
+Examples (from the repository root):
+
+    python scripts/seed_demo_cache.py
+    python scripts/seed_demo_cache.py --check
+    python scripts/seed_demo_cache.py --reset
+    python scripts/seed_demo_cache.py --reset-submissions
+
+``--reset`` removes and recreates only keys owned by the current demo
+manifest; unrelated live-mode cache entries are preserved. The separate,
+explicit ``--reset-submissions`` flag clears local submission JSON so the
+class dashboard starts empty again.
 """
 
+import argparse
+import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app import feedback as feedback_module  # noqa: E402
-from app import llm, marker  # noqa: E402
-from app.config import MARKING_MODEL  # noqa: E402
-from app.models import Step  # noqa: E402
-from app.store import get_question  # noqa: E402
-from app.verifier import verify  # noqa: E402
-
-QUESTION_ID = "q2"
-STEP_LATEX = ["x^2 = 5x", "x = 5"]
-
-MARK_RESPONSE = {
-    "criteria": [
-        {
-            "criterion_id": "C1",
-            "proposed": 0,
-            "justification": (
-                "At step 2 both sides were divided by x rather than rearranged so "
-                "that one side is zero, so this criterion is not met."
-            ),
-            "evidence_step": 2,
-        },
-        {
-            "criterion_id": "C2",
-            "proposed": 1,
-            "justification": (
-                "Symbolic checking shows step 2 lost the solution x = 0, so the "
-                "method did not preserve the solution set. Partial credit for "
-                "correctly reducing to x = 5."
-            ),
-            "evidence_step": 2,
-        },
-        {
-            "criterion_id": "C3",
-            "proposed": 2,
-            "justification": (
-                "The arithmetic that was carried out is correct: dividing 5x by x "
-                "does give 5."
-            ),
-            "evidence_step": 2,
-        },
-        {
-            "criterion_id": "C4",
-            "proposed": 0,
-            "justification": (
-                "Only x = 5 is stated. The expected solutions are 0 and 5, so not "
-                "all solutions were given."
-            ),
-            "evidence_step": 2,
-        },
-    ],
-    "misconceptions": ["divided_by_variable_lost_root"],
-}
-
-FEEDBACK_RESPONSE = {
-    "what_went_well": (
-        "You spotted straight away that this equation has an x in every term and "
-        "that it could be simplified, and the arithmetic you did was correct."
-    ),
-    "what_went_wrong": (
-        "At step 2 you divided both sides by x. That is only valid when x is not "
-        "zero, so it silently threw away the solution x = 0. The equation has two "
-        "solutions, 0 and 5, and your answer only gives one of them."
-    ),
-    "how_to_improve": (
-        "Move everything to one side instead of dividing: from x^2 = 5x, subtract "
-        "5x to get x^2 - 5x = 0, factorise to x(x - 5) = 0, then read off both "
-        "solutions. Whenever you are about to divide by something containing the "
-        "unknown, stop and factorise instead."
-    ),
-    "references": ["Notes §2 — the zero-product principle"],
-}
+from app.config import LLM_CACHE_DIR, SUBMISSIONS_DIR  # noqa: E402
+from app.offline_demo import build_cache_entries, list_demo_cases  # noqa: E402
 
 
-def main() -> None:
-    question = get_question(QUESTION_ID)
-    steps = [Step(index=i, latex=t) for i, t in enumerate(STEP_LATEX, start=1)]
-    report = verify(steps, question.model_solution_steps, question.variable)
+def _write_cache(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print(f"Question {QUESTION_ID}: {question.prompt}")
-    print(f"Student steps: {STEP_LATEX}")
-    print(f"Verifier: divergence at step {report.first_divergence_index}, "
-          f"misconceptions {report.candidate_misconceptions}")
 
-    mark_prompt = marker.build_prompt(question, steps, report)
-    mark_key = llm.cache_key(MARKING_MODEL, mark_prompt, None)
-    llm.write_cache(mark_key, MARK_RESPONSE)
-    print(f"  wrote marking response   -> fixtures/llm_cache/{mark_key}.json")
+def seed_demo_cache(cache_dir: Path = LLM_CACHE_DIR, reset: bool = False) -> int:
+    """Write the manifest-owned entries and return the number of unique keys."""
+    cases = list_demo_cases()
+    planned = []
+    for case in cases:
+        entries = build_cache_entries(case)
+        planned.append((case, entries))
 
-    # Build the proposal the same way the app does, so the feedback prompt (and
-    # therefore its cache key) matches byte for byte at request time.
-    proposal = marker.mark(question, steps, report)
+    unique = {entry.key for _, entries in planned for entry in entries}
+    if reset:
+        for key in unique:
+            (cache_dir / f"{key}.json").unlink(missing_ok=True)
 
-    feedback_prompt = feedback_module.build_prompt(question, steps, proposal, report)
-    feedback_key = llm.cache_key(MARKING_MODEL, feedback_prompt, None)
-    llm.write_cache(feedback_key, FEEDBACK_RESPONSE)
-    print(f"  wrote feedback response  -> fixtures/llm_cache/{feedback_key}.json")
+    print(f"Seeding {len(cases)} curated offline demo cases:")
+    for case, entries in planned:
+        print(f"\n  {case.id}: {case.title}")
+        print(f"    question: {case.question_id}; input: {case.input_kind}")
+        for entry in entries:
+            path = cache_dir / f"{entry.key}.json"
+            _write_cache(path, entry.payload)
+            print(f"    {entry.stage:<13} -> {path.as_posix()}")
 
-    written = feedback_module.write(question, steps, proposal, report)
+    print(f"\nReady: {len(cases)} cases, {len(unique)} AI cache entries, 0 API calls.")
+    return len(unique)
 
-    print()
-    print(f"Marks: {proposal.total_proposed}/{proposal.total_max}")
-    for criterion in proposal.criteria:
-        print(f"  {criterion.criterion_id}: {criterion.proposed}/{criterion.max}")
-    print(f"Warnings: {proposal.warnings or 'none'}")
-    print(f"Feedback opens: {written.what_went_well[:60]}...")
-    print()
-    print("Now run with DEMO_MODE=offline, choose q2, click 'Use a sample script',")
-    print("then 'Confirm & Mark'. No API key and no network required.")
+
+def check_demo_cache(cache_dir: Path = LLM_CACHE_DIR) -> bool:
+    """Validate that every runtime key exists with the exact prepared payload."""
+    ok = True
+    for case in list_demo_cases():
+        for entry in build_cache_entries(case):
+            path = cache_dir / f"{entry.key}.json"
+            try:
+                actual = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                print(f"MISSING  {case.id:<30} {entry.stage:<13} {entry.key}")
+                ok = False
+                continue
+            if actual != entry.payload:
+                print(f"STALE    {case.id:<30} {entry.stage:<13} {entry.key}")
+                ok = False
+            else:
+                print(f"READY    {case.id:<30} {entry.stage:<13} {entry.key}")
+    return ok
+
+
+def reset_submissions(directory: Path = SUBMISSIONS_DIR) -> int:
+    """Clear local persisted submissions only; fixture images are never touched."""
+    directory.mkdir(parents=True, exist_ok=True)
+    removed = 0
+    for path in directory.glob("*.json"):
+        if path.is_file():
+            path.unlink()
+            removed += 1
+    print(f"Cleared {removed} local submission file(s) from {directory}.")
+    return removed
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="verify all prepared cache entries without writing anything",
+    )
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="remove and recreate only cache keys owned by the demo manifest",
+    )
+    parser.add_argument(
+        "--reset-submissions",
+        action="store_true",
+        help="also clear data/submissions/*.json so class analytics starts empty",
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    if args.check:
+        return 0 if check_demo_cache() else 1
+
+    if args.reset_submissions:
+        reset_submissions()
+    seed_demo_cache(reset=args.reset)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

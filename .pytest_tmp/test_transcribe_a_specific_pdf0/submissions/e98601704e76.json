@@ -1,0 +1,31 @@
+{
+  "id": "e98601704e76",
+  "question_id": "q2",
+  "image_filename": "e98601704e76.png",
+  "source_page": 2,
+  "source_page_count": 2,
+  "transcription": {
+    "steps": [
+      {
+        "index": 1,
+        "latex": "x = 1",
+        "confidence": "high",
+        "edited_by_human": false
+      }
+    ],
+    "notes": ""
+  },
+  "confirmed_steps": [
+    {
+      "index": 1,
+      "latex": "x = 1",
+      "confidence": "high",
+      "edited_by_human": false
+    }
+  ],
+  "verification": null,
+  "marks": null,
+  "feedback": null,
+  "practice": [],
+  "student_pseudonym": "Student A"
+}

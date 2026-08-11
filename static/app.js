@@ -21,6 +21,7 @@
 
 const state = {
   questions: [], // Question[]
+  demoCatalogue: null, // DemoCatalogue | null
   currentQuestion: null, // Question | null
   submissionId: null, // string | null
   submission: null, // Submission | null
@@ -62,11 +63,11 @@ const state = {
   qeSolutionTranscription: null, // {steps, notes} verbatim from the API
 };
 
-/** The typed student name, or an auto-incrementing fallback if left blank. */
-function nextStudentPseudonym() {
+/** A supplied demo name, the typed name, or an auto-incrementing fallback. */
+function nextStudentPseudonym(preferred) {
   const typed = (document.getElementById("student-name").value || "").trim();
   state.submissionsThisSession += 1;
-  return typed || `Student ${state.submissionsThisSession}`;
+  return preferred || typed || `Student ${state.submissionsThisSession}`;
 }
 
 // ---------------------------------------------------------------------
@@ -100,7 +101,27 @@ async function apiFetch(path, options) {
   return body;
 }
 
+async function apiFetchBlob(path) {
+  const res = await fetch(apiUrl(path));
+  if (!res.ok) {
+    let body = {};
+    try {
+      body = await res.json();
+    } catch (_) {
+      // Keep the generic status message below.
+    }
+    const err = new Error(body.detail || body.error || `Request failed (${res.status})`);
+    err.status = res.status;
+    err.body = body;
+    throw err;
+  }
+  return res.blob();
+}
+
 const api = {
+  demoCatalogue: () => apiFetch("/api/demo"),
+  demoImage: (id) =>
+    apiFetchBlob(`/api/demo/cases/${encodeURIComponent(id)}/image`),
   listQuestions: () => apiFetch("/api/questions"),
   getQuestion: (id) => apiFetch(`/api/questions/${encodeURIComponent(id)}`),
   createSubmission: (questionId, studentPseudonym) =>
@@ -316,24 +337,98 @@ function initSetupScreen() {
   document.getElementById("type-in-btn").addEventListener("click", () => {
     beginManualEntry([]);
   });
+}
 
-  document.getElementById("sample-script-btn").addEventListener("click", async () => {
-    const q2 = state.questions.find((q) => q.id === "q2");
-    if (!q2) return;
-    const notice = document.getElementById("setup-notice");
-    if (state.currentQuestion?.id !== "q2") {
-      document.getElementById("question-select").value = "q2";
-      selectQuestion("q2");
-      notice.textContent = "Switched to Q2 for the flagship sample script.";
-      notice.classList.remove("hidden");
-    } else {
-      notice.classList.add("hidden");
-    }
-    await beginManualEntry([
-      { latex: "x^2 = 5x", confidence: "high" },
-      { latex: "x = 5", confidence: "high" },
-    ]);
+async function loadDemoCatalogue() {
+  state.demoCatalogue = await api.demoCatalogue();
+  renderDemoCatalogue();
+}
+
+function renderDemoCatalogue() {
+  const catalogue = state.demoCatalogue;
+  if (!catalogue) return;
+
+  const badge = document.getElementById("demo-mode-badge");
+  badge.textContent = catalogue.offline ? "Offline demo" : "Live mode";
+  badge.className = `mode-badge ${catalogue.offline ? "is-offline" : "is-live"}`;
+
+  const panel = document.getElementById("demo-samples");
+  const intro = document.getElementById("demo-samples-intro");
+  const list = document.getElementById("demo-case-list");
+  panel.classList.toggle("hidden", !catalogue.cases.length);
+  intro.textContent = catalogue.offline
+    ? "Prepared AI responses are replayed locally. SymPy verification, misconception detection, practice, persistence, and class analytics still run live on this server."
+    : "These prepared cases remain available for a predictable walkthrough; arbitrary uploads can also use the live AI pipeline.";
+  clearChildren(list);
+
+  catalogue.cases.forEach((demoCase) => {
+    const card = document.createElement("article");
+    card.className = "demo-case-card";
+
+    const heading = document.createElement("div");
+    heading.className = "flex flex-wrap items-center gap-2";
+    heading.appendChild(el("h3", "font-semibold text-sm", demoCase.title));
+    heading.appendChild(
+      el(
+        "span",
+        `demo-kind-badge ${demoCase.input_kind === "handwritten" ? "is-image" : "is-typed"}`,
+        demoCase.input_kind === "handwritten" ? "Handwritten image" : "Prepared steps"
+      )
+    );
+    card.appendChild(heading);
+    card.appendChild(el("p", "text-xs text-slate-600 mt-2", demoCase.summary));
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn-secondary text-xs px-3 py-1.5 mt-3";
+    button.textContent = !demoCase.cache_ready && catalogue.offline
+      ? "Cache not seeded"
+      : demoCase.input_kind === "handwritten"
+        ? "Run photo workflow"
+        : "Use prepared steps";
+    button.disabled = !demoCase.cache_ready && catalogue.offline;
+    button.addEventListener("click", () => beginDemoCase(demoCase, button));
+    card.appendChild(button);
+    list.appendChild(card);
   });
+
+  const uploadNote = document.getElementById("offline-upload-note");
+  uploadNote.classList.toggle("hidden", !catalogue.offline);
+}
+
+async function beginDemoCase(demoCase, button) {
+  const notice = document.getElementById("setup-notice");
+  const question = state.questions.find((q) => q.id === demoCase.question_id);
+  if (!question) {
+    notice.textContent = `Demo question ${demoCase.question_id} is unavailable.`;
+    notice.classList.remove("hidden");
+    return;
+  }
+
+  document.getElementById("question-select").value = question.id;
+  selectQuestion(question.id);
+  button.disabled = true;
+  notice.textContent = `Loading “${demoCase.title}”…`;
+  notice.classList.remove("hidden");
+
+  try {
+    if (demoCase.input_kind === "handwritten") {
+      const blob = await api.demoImage(demoCase.id);
+      const extension = blob.type === "image/png" ? "png" : "jpg";
+      const file = new File([blob], `${demoCase.id}.${extension}`, {
+        type: blob.type || "image/jpeg",
+      });
+      await beginWithUpload(file, demoCase.student_pseudonym);
+    } else {
+      await beginManualEntry(demoCase.prepared_steps || [], demoCase.student_pseudonym);
+    }
+  } catch (err) {
+    notice.textContent =
+      (err.body && (err.body.detail || err.body.error)) || err.message || "Could not load this demo case.";
+    notice.classList.remove("hidden");
+  } finally {
+    button.disabled = !demoCase.cache_ready && !!state.demoCatalogue?.offline;
+  }
 }
 
 async function loadQuestions() {
@@ -606,8 +701,9 @@ function renderQeSolution() {
     img.className = "w-full rounded-lg border border-slate-200";
     preview.appendChild(img);
   } else if (state.qeSolutionImageFilename && state.editingId) {
-    // Reopened question: fetch the stored photo. fixtures/images/ is untracked,
-    // so degrade quietly rather than showing a broken-image glyph.
+    // Reopened question: fetch the stored photo. Runtime-authored images may
+    // disappear on an ephemeral deployment, so degrade quietly rather than
+    // showing a broken-image glyph.
     const img = document.createElement("img");
     img.alt = "Your handwritten model solution";
     img.className = "w-full rounded-lg border border-slate-200";
@@ -934,7 +1030,7 @@ function escapeHtml(str) {
  * pages at zero cost (no LLM call) via /api/uploads/preview before
  * committing one page to the real /transcribe call.
  */
-async function beginWithUpload(file) {
+async function beginWithUpload(file, studentPseudonym = null) {
   if (!state.currentQuestion) return;
 
   const looksLikePdf =
@@ -942,7 +1038,7 @@ async function beginWithUpload(file) {
 
   const sub = await api.createSubmission(
     state.currentQuestion.id,
-    nextStudentPseudonym()
+    nextStudentPseudonym(studentPseudonym)
   );
   state.submissionId = sub.id;
   state.submission = sub;
@@ -1026,12 +1122,12 @@ async function transcribeStagedFile(page, file) {
   }
 }
 
-async function beginManualEntry(prefill) {
+async function beginManualEntry(prefill, studentPseudonym = null) {
   if (!state.currentQuestion) return;
 
   const sub = await api.createSubmission(
     state.currentQuestion.id,
-    nextStudentPseudonym()
+    nextStudentPseudonym(studentPseudonym)
   );
   state.submissionId = sub.id;
   state.submission = sub;
@@ -1820,9 +1916,9 @@ async function init() {
   initReviewScreen();
   showScreen("setup");
   try {
-    await loadQuestions();
+    await Promise.all([loadQuestions(), loadDemoCatalogue()]);
   } catch (err) {
-    console.error("Failed to load questions", err);
+    console.error("Failed to initialise AIMS", err);
   }
 }
 

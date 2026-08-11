@@ -10,6 +10,7 @@ STATIC_DIR = BASE_DIR / "static"
 FIXTURES_DIR = BASE_DIR / "fixtures"
 LLM_CACHE_DIR = FIXTURES_DIR / "llm_cache"
 IMAGES_DIR = FIXTURES_DIR / "images"
+OFFLINE_DEMO_CASES_FILE = FIXTURES_DIR / "offline_demo_cases.json"
 SUBMISSIONS_DIR = BASE_DIR / "data" / "submissions"
 # Lecturer-authored questions, layered over the read-only seeded bank so the
 # seed file stays pristine and a fresh clone still starts with six questions.

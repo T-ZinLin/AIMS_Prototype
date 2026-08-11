@@ -13,11 +13,17 @@ from pydantic import BaseModel, Field
 from app import uploads
 from app.authoring import default_criteria, validate_question
 from app.cohort import summarise
-from app.config import ALLOWED_ORIGINS, IMAGES_DIR, SEEDS_DIR, STATIC_DIR
+from app.config import ALLOWED_ORIGINS, DEMO_MODE, IMAGES_DIR, SEEDS_DIR, STATIC_DIR
 from app.feedback import write as write_feedback
 from app.llm import OfflineCacheMiss
 from app.marker import mark as mark_submission
 from app.models import ClassSummary, Question, Step, Submission, Transcription
+from app.offline_demo import (
+    DemoCatalogue,
+    catalogue as demo_catalogue,
+    demo_image_path,
+    get_demo_case,
+)
 from app.practice import QUESTION_TYPES, generate_practice
 from app.store import (
     delete_question,
@@ -106,13 +112,20 @@ class UploadPreview(BaseModel):
 
 @app.exception_handler(OfflineCacheMiss)
 def offline_cache_miss(request: Request, exc: OfflineCacheMiss) -> JSONResponse:
+    is_transcription = request.url.path.endswith("/transcribe")
+    input_name = "upload" if is_transcription else "confirmed working"
     return JSONResponse(
         status_code=503,
         content={
             "error": "offline_cache_miss",
-            "detail": str(exc),
-            "hint": "This input has not been cached. Use one of the sample scripts, "
-            "or restart with DEMO_MODE=live.",
+            "detail": (
+                f"This {input_name} is not one of the prepared offline demo inputs. "
+                "Offline mode never sends student work to an external AI service."
+            ),
+            "hint": (
+                "Choose a curated demo sample on the Setup screen. To process arbitrary "
+                "work, run in live mode with a valid Anthropic API key."
+            ),
         },
     )
 
@@ -123,6 +136,28 @@ def offline_cache_miss(request: Request, exc: OfflineCacheMiss) -> JSONResponse:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+# ---------- offline demo catalogue ----------
+
+
+@app.get("/api/demo", response_model=DemoCatalogue)
+def api_demo_catalogue() -> DemoCatalogue:
+    """Public, safe metadata for the curated samples and current runtime mode."""
+    return demo_catalogue(DEMO_MODE)
+
+
+@app.get("/api/demo/cases/{case_id}/image")
+def api_demo_case_image(case_id: str) -> FileResponse:
+    """Serve only a fixture image explicitly whitelisted by the demo manifest."""
+    try:
+        case = get_demo_case(case_id)
+        path = demo_image_path(case)
+    except (KeyError, FileNotFoundError):
+        raise HTTPException(status_code=404, detail="no image for this demo case")
+
+    media_type = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
+    return FileResponse(path, media_type=media_type, filename=path.name)
 
 
 # ---------- questions ----------
@@ -336,10 +371,13 @@ async def api_transcribe(
     # is safe on its own. The old f"{id}-{file.filename}" scheme joined an
     # unsanitized client filename into a disk path before writing it.
     filename = f"{submission_id}.png"
-    (IMAGES_DIR / filename).write_bytes(png)
     transcription = transcribe(
         image_b64=base64.b64encode(png).decode(), media_type="image/png"
     )
+    # Persist only after transcription succeeds. An arbitrary offline upload
+    # that misses the curated cache should explain the limitation, not leave
+    # an orphaned student image behind.
+    (IMAGES_DIR / filename).write_bytes(png)
 
     submission.image_filename = filename
     submission.source_page = page

@@ -1,0 +1,9 @@
+{
+  "what_went_well": "You factorised the quadratic correctly in Step 1 and used the zero-product principle in Step 2 to state both roots. The symbolic check confirms that no solutions were lost or gained, so this earns full marks.",
+  "what_went_wrong": "Nothing in your mathematics cost you a mark. For maximum clarity, you could split the chained equality in Step 1 into the original equation and the factorised equation on separate lines.",
+  "how_to_improve": "Keep the same method, but write x^2 - 5x + 6 = 0 and then (x - 2)(x - 3) = 0 on separate lines. That makes each transformation especially easy to audit.",
+  "references": [
+    "Notes §1 — factorising quadratics",
+    "Notes §2 — the zero-product principle"
+  ]
+}

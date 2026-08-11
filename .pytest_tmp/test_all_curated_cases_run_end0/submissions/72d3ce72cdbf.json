@@ -1,0 +1,175 @@
+{
+  "id": "72d3ce72cdbf",
+  "question_id": "q4",
+  "image_filename": null,
+  "source_page": null,
+  "source_page_count": null,
+  "transcription": null,
+  "confirmed_steps": [
+    {
+      "index": 1,
+      "latex": "x^2 + 4x + 1 = 0",
+      "confidence": "high",
+      "edited_by_human": true
+    },
+    {
+      "index": 2,
+      "latex": "(x + 2)^2 - 3 = 0",
+      "confidence": "high",
+      "edited_by_human": true
+    },
+    {
+      "index": 3,
+      "latex": "x = -2 + \\sqrt{3}",
+      "confidence": "high",
+      "edited_by_human": true
+    }
+  ],
+  "verification": {
+    "steps": [
+      {
+        "index": 1,
+        "parsed": true,
+        "solutions": [
+          "-2 + sqrt(3)",
+          "-2 - sqrt(3)"
+        ],
+        "equivalent_to_previous": null,
+        "divergence": null,
+        "lost_roots": [],
+        "gained_roots": [],
+        "note": ""
+      },
+      {
+        "index": 2,
+        "parsed": true,
+        "solutions": [
+          "-2 + sqrt(3)",
+          "-2 - sqrt(3)"
+        ],
+        "equivalent_to_previous": true,
+        "divergence": null,
+        "lost_roots": [],
+        "gained_roots": [],
+        "note": ""
+      },
+      {
+        "index": 3,
+        "parsed": true,
+        "solutions": [
+          "-2 + sqrt(3)"
+        ],
+        "equivalent_to_previous": false,
+        "divergence": "lost_roots",
+        "lost_roots": [
+          "-2 - sqrt(3)"
+        ],
+        "gained_roots": [],
+        "note": ""
+      }
+    ],
+    "final_answer_correct": false,
+    "final_answer_verified": true,
+    "model_solutions": [
+      "-2 + sqrt(3)",
+      "-2 - sqrt(3)"
+    ],
+    "candidate_misconceptions": [
+      "dropped_plus_minus"
+    ],
+    "first_divergence_index": 3,
+    "all_steps_parsed": true
+  },
+  "marks": {
+    "criteria": [
+      {
+        "criterion_id": "C1",
+        "proposed": 1,
+        "max": 1,
+        "justification": "Step 2 correctly rewrites the quadratic by completing the square, showing an appropriate exact method.",
+        "evidence_step": 2,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C2",
+        "proposed": 2,
+        "max": 3,
+        "justification": "Steps 1 and 2 preserve the solution set, but Step 3 keeps only one square-root branch and loses the second solution.",
+        "evidence_step": 3,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C3",
+        "proposed": 1,
+        "max": 2,
+        "justification": "The root stated in Step 3 is simplified correctly, but the matching negative square-root branch is missing.",
+        "evidence_step": 3,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C4",
+        "proposed": 0,
+        "max": 1,
+        "justification": "Step 3 states only x = -2 + sqrt(3); the verified solution set also contains x = -2 - sqrt(3).",
+        "evidence_step": 3,
+        "overridden": false
+      }
+    ],
+    "misconceptions": [
+      "dropped_plus_minus"
+    ],
+    "warnings": [],
+    "total_proposed": 4,
+    "total_max": 7
+  },
+  "feedback": {
+    "what_went_well": "You completed the square correctly in Step 2 and the exact root you wrote in Step 3 is valid.",
+    "what_went_wrong": "At Step 3 you took only one square-root branch. Solving (x + 2)^2 = 3 requires both x + 2 = sqrt(3) and x + 2 = -sqrt(3), so one valid solution was lost.",
+    "how_to_improve": "Whenever you remove a square, write the ± sign before rearranging. Here, write x + 2 = ±sqrt(3), then state x = -2 + sqrt(3) and x = -2 - sqrt(3).",
+    "references": [
+      "Notes §3 — square roots and the plus-or-minus sign"
+    ]
+  },
+  "practice": [
+    {
+      "prompt_latex": "Solve $x^2 = 100$.",
+      "answer_latex": "x = 10, \\; x = -10",
+      "misconception_tag": "dropped_plus_minus",
+      "template_id": "quad_plus_minus",
+      "question_type": "bare",
+      "framing_id": "bare",
+      "admissible_roots": [
+        "10",
+        "-10"
+      ],
+      "rejected_note": ""
+    },
+    {
+      "prompt_latex": "Solve $x^2 = 4$.",
+      "answer_latex": "x = 2, \\; x = -2",
+      "misconception_tag": "dropped_plus_minus",
+      "template_id": "quad_plus_minus",
+      "question_type": "bare",
+      "framing_id": "bare",
+      "admissible_roots": [
+        "2",
+        "-2"
+      ],
+      "rejected_note": ""
+    },
+    {
+      "prompt_latex": "Solve $x^2 = 16$.",
+      "answer_latex": "x = 4, \\; x = -4",
+      "misconception_tag": "dropped_plus_minus",
+      "template_id": "quad_plus_minus",
+      "question_type": "bare",
+      "framing_id": "bare",
+      "admissible_roots": [
+        "4",
+        "-4"
+      ],
+      "rejected_note": ""
+    }
+  ],
+  "student_pseudonym": "Demo Student — Dropped ±"
+}

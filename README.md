@@ -75,6 +75,7 @@ guarded against.
 | Practice | `app/practice.py` | Generates follow-up practice questions targeting the detected misconception. No LLM at all: each template declares its own answer, and a 150-case property test (`tests/test_practice.py`) checks the claimed answer actually solves the generated equation. |
 | Retrieval | `app/context.py` | Deterministic keyed lookup (question, rubric, misconception explanations, course notes) for the LLM prompts — no vector store; the whole retrievable corpus is under two thousand tokens, so exact lookup is simpler and strictly more accurate than approximate search. |
 | LLM gateway | `app/llm.py` | The only module that talks to the Anthropic API. Every call is content-addressed and cached to disk (`fixtures/llm_cache/`); in `DEMO_MODE=offline` a cache miss raises immediately instead of hanging on bad venue Wi-Fi. |
+| Offline demo | `app/offline_demo.py` + `fixtures/offline_demo_cases.json` | Validates the curated case catalogue and derives the exact transcription/marking/feedback cache entries. It contains no alternate marking path: every sample returns to the normal API pipeline. |
 | Storage | `app/store.py` | The only file-I/O module: loads seed data, persists submissions. |
 | API | `app/main.py` | FastAPI routes wiring the above together; serves the static frontend from `/`. |
 
@@ -115,28 +116,71 @@ venv's own Python always works.
 
 ## Run the demo with no API key at all
 
-This works today and is the fallback worth leading with if the venue Wi-Fi or
-an API key is unavailable:
+Seed every curated case without an API key or Anthropic call:
 
 ```
 .venv/Scripts/python.exe scripts/seed_demo_cache.py
 ```
 
-This hand-authors and writes plausible marking/feedback responses for the
-flagship "divided through by x" script straight into `fixtures/llm_cache/`,
-keyed exactly as a real API call would be. Then:
+The script reads `fixtures/offline_demo_cases.json`, runs the real verifier,
+builds the real prompts, and writes only the prepared AI-dependent outputs to
+their exact content-addressed keys. Check readiness at any time with:
+
+```
+.venv/Scripts/python.exe scripts/seed_demo_cache.py --check
+```
+
+Then:
 
 1. Start the server with `DEMO_MODE=offline` set (either in `.env`, or
-   `set DEMO_MODE=offline` before the uvicorn command on Windows).
-2. In the browser, choose question **q2**.
-3. Click **"Use a sample script"** (not an upload — it pre-fills the confirm
-   screen with the two lines `x^2 = 5x` then `x = 5`, so no transcription
-   call is needed either).
-4. Click **"Confirm & Mark"**.
+   `$env:DEMO_MODE="offline"` in PowerShell before the uvicorn command).
+2. Open **Curated demo samples**. The header also says **Offline demo**, so
+   the active mode is unambiguous.
+3. Choose a sample. The handwritten Q1 case is fetched as an actual image and
+   sent through the same upload/transcription endpoint as a lecturer upload;
+   the other cases open prepared steps in the same confirmation editor.
+4. Review the transcription and click **Confirm & Mark**.
 
-The full verify → mark → feedback → practice pipeline runs end to end with
-no network call and no API key, served entirely from the cache this script
-just seeded.
+The normal verify → misconception detection → mark → feedback → practice →
+class aggregation pipeline runs end to end. Only vision transcription,
+marking judgement, and feedback prose are replayed from cache. An arbitrary
+uncached upload receives a friendly explanation instead of an internal cache
+key. With `DEMO_MODE=live` and a valid `ANTHROPIC_API_KEY`, arbitrary inputs
+continue through the real models exactly as before.
+
+Tailwind, KaTeX (including its fonts), and Chart.js are pinned under
+`static/vendor/`; the browser makes no CDN or web-font requests. Once the
+Python dependencies are installed, the local demo therefore remains styled,
+renders mathematics, and shows class charts with the network disconnected.
+
+### Curated cases guaranteed after seeding
+
+| Case | Entry | What it demonstrates |
+|---|---|---|
+| `q1-correct-handwritten` | Real bundled handwritten image | Successful transcription, correct symbolic chain, full marks, feedback and general practice |
+| `q2-divided-by-variable` | Prepared confirmed steps | Dividing by `x` loses the root `x = 0`; targeted zero-product practice |
+| `q4-dropped-plus-minus` | Prepared confirmed steps | Completing the square correctly, then losing the second square-root branch; targeted ± practice |
+
+The Q2 and Q4 cases become handwritten cases by adding real photos and their
+faithful transcription payloads to the same manifest; no Python or JavaScript
+sample needs to be added.
+
+### Reset locally
+
+Recreate only manifest-owned cache keys, preserving unrelated live caches:
+
+```
+.venv/Scripts/python.exe scripts/seed_demo_cache.py --reset
+```
+
+To also clear local submissions so the class dashboard starts empty:
+
+```
+.venv/Scripts/python.exe scripts/seed_demo_cache.py --reset-submissions
+```
+
+The submission reset deletes only `data/submissions/*.json`. It does not touch
+fixture images, question seeds, or unrelated LLM cache entries.
 
 ## Tests
 
@@ -144,7 +188,7 @@ just seeded.
 .venv/Scripts/python.exe -m pytest -q
 ```
 
-392 tests currently pass. Notable groups:
+Notable groups:
 
 - **`tests/test_seed_integrity.py`** — every model solution line in
   `app/seeds/questions.json` actually parses, and verifies as correct against
@@ -160,6 +204,11 @@ just seeded.
   non-equality relations, out-of-order or duplicate step indices, very long
   input, malformed LLM responses, malformed HTTP request bodies, and
   path-traversal attempts in a submission id.
+- **`tests/test_offline_demo.py`** — validates the manifest, proves the seeder
+  never constructs an Anthropic client, checks that reset preserves unrelated
+  caches, exercises the real handwritten-image endpoint, and runs all curated
+  cases end to end in forced offline mode through verification, marking,
+  feedback, practice and computed class analytics.
 
 ## Known limitations
 
@@ -178,17 +227,20 @@ judge to distrust than one that names them:
 - **Inequalities are rejected outright as unparseable**, not evaluated as
   inequalities. A line like `x \geq 2` degrades to "could not be interpreted
   as mathematics" rather than being verified on its own terms.
-- **Transcription quality is the dominant, and currently unmeasured, source
-  of error.** `scripts/evaluate.py` and `fixtures/ground_truth.json` exist to
-  measure it honestly, but no real handwritten scripts have been photographed
-  yet — every ground-truth entry is a placeholder, and running the evaluator
-  today correctly reports "nothing could be evaluated" rather than a number.
-  Do not take any transcription-accuracy figure on faith until that script
-  has been run against real photographs.
-- **The class-summary screen (`GET /api/class/summary`) is seeded fixture
-  data** (`app/seeds/class_summary.json`), not computed from real
-  submissions. It illustrates what the aggregate view would look like; it is
-  not wired up to `data/submissions/`.
+- **Transcription quality remains the dominant source of uncertainty.** The
+  repository has one unique bundled handwritten image; the other two JPG
+  names contain identical bytes and do not count as independent evidence.
+  `scripts/evaluate.py` evaluates that one case and clearly skips the two
+  `REPLACE-ME-*` placeholders. Do not generalise its result to other hands,
+  lighting, or camera conditions.
+- **Only one curated case currently begins with a real handwritten image.**
+  Q2 lost-root and Q4 dropped-± are guaranteed from prepared confirmed steps,
+  but need the two photographs listed below before their vision-transcription
+  stages can be demonstrated.
+- **Class analytics are computed from submissions persisted on this server.**
+  On a fresh machine with none, the endpoint honestly returns the labelled
+  illustrative seed. Render's default filesystem is ephemeral, so demo
+  submissions can disappear on a redeploy or instance replacement.
 - A very long single line of alphabetic garbage (thousands of characters)
   is still correctly rejected as unparseable, but slowly — SymPy's LaTeX
   parser's error recovery is not linear in input length on pathological
@@ -212,8 +264,10 @@ LLM call with a hidden key. The included deployment therefore publishes only
    `https://aims-backend-xxxx.onrender.com`. Render service URLs are unique, so
    do not assume the example URL is yours.
 
-The Blueprint defaults to `DEMO_MODE=offline`, so cached demo flows work
-without an API key. For live transcription and marking, set
+The Blueprint defaults to `DEMO_MODE=offline`. Its build command installs the
+dependencies and runs `python scripts/seed_demo_cache.py --reset`, so all
+manifest-owned cache entries are regenerated without an API key before the
+service starts. For live transcription and marking, set
 `ANTHROPIC_API_KEY` and `DEMO_MODE=live` in the Render dashboard. Never put the
 key in `static/`, a GitHub Actions variable, `render.yaml`, or a committed
 `.env` file.
@@ -264,8 +318,10 @@ repository path) and include any custom-domain origin you use.
 3. In the site, verify that the question list loads. If it does not, check the
    browser network panel: requests beginning with `/api/` must target the
    Render host, not `<owner>.github.io`.
-4. Remember that offline mode supports cached demo inputs only. Enable live
-   mode on Render to transcribe and mark previously unseen uploads.
+4. Confirm the header says **Offline demo**, all three curated cards are
+   enabled, and the handwritten Q1 case reaches Review. Enable live mode on
+   Render only when a valid key is configured and previously unseen inputs
+   need to be processed.
 
 This split changes only where the frontend and API are hosted. FastAPI still
 serves `static/` directly during local development, and the marking pipeline
@@ -273,10 +329,12 @@ is otherwise unchanged.
 
 ## Not built yet
 
-- Real handwritten fixtures. `fixtures/images/` is currently empty and
-  `fixtures/ground_truth.json` contains only placeholder entries.
-- A live evaluation run. `scripts/evaluate.py` is implemented and its
-  "skip missing images, still print a summary" path is verified, but it has
-  never been run against a real photograph, so no actual transcription
-  accuracy, misconception precision/recall, or mark-agreement number has
-  been measured yet.
+- A distinct Q2 lost-root photograph named
+  `REPLACE-ME-q2-divided-by-x.jpg`, containing exactly `x^2 = 5x` then
+  `x = 5`.
+- A distinct Q4 dropped-± photograph named
+  `REPLACE-ME-q4-dropped-plus-minus.jpg`, containing the three confirmed lines
+  listed in `fixtures/ground_truth.json`.
+- A representative multi-writer evaluation set. The current evaluator has one
+  real unique image, which is enough to verify plumbing and cache identity but
+  not enough to support a credible handwriting-accuracy claim.

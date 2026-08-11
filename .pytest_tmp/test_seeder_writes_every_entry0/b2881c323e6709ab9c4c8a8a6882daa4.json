@@ -1,0 +1,35 @@
+{
+  "criteria": [
+    {
+      "criterion_id": "C1",
+      "proposed": 1,
+      "justification": "Step 1 presents the equation with zero on one side, suitable for factorising and applying the zero-product principle.",
+      "evidence_step": 1
+    },
+    {
+      "criterion_id": "C2",
+      "proposed": 3,
+      "justification": "Step 1 factorises the quadratic and Step 2 applies the zero-product principle, giving both roots with none lost or gained.",
+      "evidence_step": 2
+    },
+    {
+      "criterion_id": "C3",
+      "proposed": 2,
+      "justification": "The factors in Step 1 produce the two roots stated in Step 2, matching the symbolic verification.",
+      "evidence_step": 2
+    },
+    {
+      "criterion_id": "C4",
+      "proposed": 1,
+      "justification": "Step 2 states both solutions, x = 2 and x = 3, matching the verified solution set.",
+      "evidence_step": 2
+    },
+    {
+      "criterion_id": "C5",
+      "proposed": 1,
+      "justification": "Steps 1 and 2 are concise and logically ordered from factorisation to the two roots.",
+      "evidence_step": 2
+    }
+  ],
+  "misconceptions": []
+}

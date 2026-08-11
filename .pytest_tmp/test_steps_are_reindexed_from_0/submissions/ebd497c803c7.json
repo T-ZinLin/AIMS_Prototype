@@ -1,0 +1,27 @@
+{
+  "id": "ebd497c803c7",
+  "question_id": "q2",
+  "image_filename": null,
+  "source_page": null,
+  "source_page_count": null,
+  "transcription": null,
+  "confirmed_steps": [
+    {
+      "index": 1,
+      "latex": "x^2 = 5x",
+      "confidence": "high",
+      "edited_by_human": true
+    },
+    {
+      "index": 2,
+      "latex": "x = 5",
+      "confidence": "high",
+      "edited_by_human": true
+    }
+  ],
+  "verification": null,
+  "marks": null,
+  "feedback": null,
+  "practice": [],
+  "student_pseudonym": "Student A"
+}

@@ -331,11 +331,17 @@ def classify(
 
         previous_step = by_index.get(verification.index - 1, None)
         previous_text = previous_step.latex if previous_step else ""
+        current_step = by_index.get(verification.index, None)
+        current_text = current_step.latex if current_step else ""
 
         if verification.divergence == "lost_roots":
             if "0" in verification.lost_roots:
                 tags.append("divided_by_variable_lost_root")
-            elif _is_plus_minus_pair(verification.lost_roots, verification.solutions):
+            elif _is_plus_minus_pair(
+                verification.lost_roots, verification.solutions
+            ) or _lost_branch_after_squaring(
+                previous_text, current_text, verification
+            ):
                 tags.append("dropped_plus_minus")
             else:
                 tags.append("lost_solution")
@@ -361,3 +367,32 @@ def _is_plus_minus_pair(lost: list[str], kept: list[str]) -> bool:
         return sympy.simplify(sympy.sympify(lost[0]) + sympy.sympify(kept[0])) == 0
     except Exception:
         return False
+
+
+def _lost_branch_after_squaring(
+    previous_text: str,
+    current_text: str,
+    verification: StepVerification,
+) -> bool:
+    r"""Recognise a dropped ± after a shifted square such as ``(x+2)^2=3``.
+
+    The older opposite-root check catches ``x^2 = 9`` because its roots are
+    ``-3`` and ``3``. It cannot catch a completed square: the roots of
+    ``(x+2)^2 = 3`` are symmetric around ``-2``, not around zero. If a
+    two-root equation containing a written square shrinks to exactly one
+    square-root expression, the missing reversible branch is the same
+    misconception. Requiring ``\sqrt`` on the new line keeps an answer such as
+    ``x^2 - 5x + 6 = 0`` followed by only ``x = 2`` classified as the more
+    general ``lost_solution`` rather than guessing how the student lost it.
+
+    A lost zero root is classified before this helper, preserving the more
+    specific divide-by-the-unknown diagnosis for cases such as ``x^2 = 5x``.
+    """
+    compact = previous_text.replace(" ", "")
+    current_compact = current_text.replace(" ", "")
+    return (
+        len(verification.lost_roots) == 1
+        and len(verification.solutions) == 1
+        and ("^2" in compact or "^{2}" in compact)
+        and "\\sqrt" in current_compact
+    )

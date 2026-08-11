@@ -1,0 +1,31 @@
+{
+  "id": "57e838c16eff",
+  "question_id": "q2",
+  "image_filename": "57e838c16eff.png",
+  "source_page": 1,
+  "source_page_count": 1,
+  "transcription": {
+    "steps": [
+      {
+        "index": 1,
+        "latex": "x^2 = 5x",
+        "confidence": "low",
+        "edited_by_human": false
+      }
+    ],
+    "notes": "faint"
+  },
+  "confirmed_steps": [
+    {
+      "index": 1,
+      "latex": "x^2 = 5x",
+      "confidence": "low",
+      "edited_by_human": false
+    }
+  ],
+  "verification": null,
+  "marks": null,
+  "feedback": null,
+  "practice": [],
+  "student_pseudonym": "Student A"
+}

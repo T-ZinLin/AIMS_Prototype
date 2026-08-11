@@ -1,0 +1,31 @@
+{
+  "criteria": [
+    {
+      "criterion_id": "C1",
+      "proposed": 1,
+      "justification": "Step 2 correctly rewrites the quadratic by completing the square, showing an appropriate exact method.",
+      "evidence_step": 2
+    },
+    {
+      "criterion_id": "C2",
+      "proposed": 2,
+      "justification": "Steps 1 and 2 preserve the solution set, but Step 3 keeps only one square-root branch and loses the second solution.",
+      "evidence_step": 3
+    },
+    {
+      "criterion_id": "C3",
+      "proposed": 1,
+      "justification": "The root stated in Step 3 is simplified correctly, but the matching negative square-root branch is missing.",
+      "evidence_step": 3
+    },
+    {
+      "criterion_id": "C4",
+      "proposed": 0,
+      "justification": "Step 3 states only x = -2 + sqrt(3); the verified solution set also contains x = -2 - sqrt(3).",
+      "evidence_step": 3
+    }
+  ],
+  "misconceptions": [
+    "dropped_plus_minus"
+  ]
+}

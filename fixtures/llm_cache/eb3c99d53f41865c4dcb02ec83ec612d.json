@@ -1,0 +1,8 @@
+{
+  "what_went_well": "You completed the square correctly in Step 2 and the exact root you wrote in Step 3 is valid.",
+  "what_went_wrong": "At Step 3 you took only one square-root branch. Solving (x + 2)^2 = 3 requires both x + 2 = sqrt(3) and x + 2 = -sqrt(3), so one valid solution was lost.",
+  "how_to_improve": "Whenever you remove a square, write the ± sign before rearranging. Here, write x + 2 = ±sqrt(3), then state x = -2 + sqrt(3) and x = -2 - sqrt(3).",
+  "references": [
+    "Notes §3 — square roots and the plus-or-minus sign"
+  ]
+}

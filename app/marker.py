@@ -120,6 +120,22 @@ def mark(
         schema=_SCHEMA,
     )
 
+    return proposal_from_payload(question, report, payload)
+
+
+def proposal_from_payload(
+    question: Question,
+    report: VerificationReport,
+    payload: dict,
+) -> MarkProposal:
+    """Validate an untrusted marking payload against the real rubric.
+
+    Keeping response parsing separate from the network/cache call lets the
+    offline demo seeder derive the feedback prompt from its hand-reviewed
+    marking fixture without pretending to call a model. Runtime marking still
+    enters through :func:`mark` and follows the exact same validation path.
+    """
+
     # The rubric is the authority on maximum marks, never the model. The model
     # response is untrusted input: a malformed reply (wrong types, not just
     # wrong values) must degrade to "no judgement returned", never raise.

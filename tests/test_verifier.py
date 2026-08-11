@@ -65,6 +65,36 @@ def test_dropping_plus_minus_is_a_lost_root():
     assert "dropped_plus_minus" in report.candidate_misconceptions
 
 
+def test_dropping_plus_minus_after_completing_the_square_is_detected():
+    report = verify(
+        steps(
+            "x^2 + 4x + 1 = 0",
+            "(x + 2)^2 - 3 = 0",
+            r"x = -2 + \sqrt{3}",
+        ),
+        model_solution_steps=[
+            "x^2 + 4x + 1 = 0",
+            "(x + 2)^2 - 3 = 0",
+            r"x = -2 + \sqrt{3}, x = -2 - \sqrt{3}",
+        ],
+        variable="x",
+    )
+
+    assert report.steps[2].divergence == "lost_roots"
+    assert report.candidate_misconceptions == ["dropped_plus_minus"]
+
+
+def test_omitting_an_unrelated_polynomial_root_is_not_called_dropped_plus_minus():
+    report = verify(
+        steps("x^2 - 5x + 6 = 0", "x = 2"),
+        model_solution_steps=["x^2 - 5x + 6 = 0", "x = 2, x = 3"],
+        variable="x",
+    )
+
+    assert report.steps[1].divergence == "lost_roots"
+    assert report.candidate_misconceptions == ["lost_solution"]
+
+
 def test_unparseable_step_degrades_without_crashing():
     report = verify(
         steps("x^2 - 5x + 6 = 0", r"\text{then I factorised}", "x = 2, x = 3"),

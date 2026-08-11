@@ -1,0 +1,21 @@
+{
+  "id": "2e9bb350b2bb",
+  "question_id": "authored1",
+  "image_filename": null,
+  "source_page": null,
+  "source_page_count": null,
+  "transcription": null,
+  "confirmed_steps": [
+    {
+      "index": 1,
+      "latex": "x^2 - 7x + 12 = 0",
+      "confidence": "high",
+      "edited_by_human": true
+    }
+  ],
+  "verification": null,
+  "marks": null,
+  "feedback": null,
+  "practice": [],
+  "student_pseudonym": "Student A"
+}

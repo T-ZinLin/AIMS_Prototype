@@ -10,7 +10,9 @@ effect. Nothing here talks to the cache directly.
 This does NOT call the marking or feedback stages -- those prompts depend on
 the *confirmed* transcription (which a lecturer edits in the UI), so their
 cache entries cannot be pre-warmed from a raw image the way transcription's
-can. scripts/seed_demo_cache.py covers that half for the flagship q2 script.
+can. ``scripts/seed_demo_cache.py`` prepares all AI stages for every curated
+case from ``fixtures/offline_demo_cases.json`` without an API key. This script
+remains useful for collecting genuine live vision responses for new images.
 
 Requires DEMO_MODE=live and a real ANTHROPIC_API_KEY. Deliberately exits early
 and cleanly if either is missing, rather than letting app.llm raise partway

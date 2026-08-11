@@ -11,12 +11,10 @@ misconceptions and marks. It reports:
   - mark agreement: exact agreement rate per criterion, and mean absolute error
 
 A demo that claims an accuracy number without measuring it is exactly the
-kind of claim judges probe first. fixtures/ground_truth.json currently
-contains only placeholder entries (no real handwritten scripts have been
-photographed yet), so every entry's image is expected to be missing right
-now. That is treated as a normal, reportable outcome, not a crash: this
-script skips missing images with a clear message and still prints a summary
-table over whatever it *could* evaluate, even if that is nothing.
+kind of claim judges probe first. The repository currently contains one unique
+handwritten fixture and two explicit placeholders. Missing images are treated
+as a normal, reportable outcome: this script skips them with a clear message
+and still prints a summary over the real cases it can evaluate.
 
 Run:  .venv/Scripts/python.exe scripts/evaluate.py
 """
@@ -28,6 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from app import uploads  # noqa: E402
 from app.config import IMAGES_DIR, FIXTURES_DIR  # noqa: E402
 from app.marker import mark as mark_submission  # noqa: E402
 from app.models import Step  # noqa: E402
@@ -37,11 +36,7 @@ from app.verifier import verify  # noqa: E402
 
 GROUND_TRUTH_PATH = FIXTURES_DIR / "ground_truth.json"
 
-_MEDIA_TYPES = {
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".png": "image/png",
-}
+_IMAGE_SUFFIXES = frozenset({".jpg", ".jpeg", ".png"})
 
 
 # ---------------------------------------------------------------------------
@@ -132,15 +127,18 @@ def evaluate_entry(entry: dict) -> dict | None:
         )
         return None
 
-    media_type = _MEDIA_TYPES.get(image_path.suffix.lower())
-    if media_type is None:
+    if image_path.suffix.lower() not in _IMAGE_SUFFIXES:
         print(f"  SKIP {entry['image_filename']}: unrecognised image type.")
         return None
 
     question = get_question(entry["question_id"])
 
-    image_b64 = base64.b64encode(image_path.read_bytes()).decode()
-    transcription = transcribe(image_b64=image_b64, media_type=media_type)
+    # Match the server and cache warmer exactly. The runtime never sends raw
+    # JPEG/PNG bytes to transcription; uploads.render_page() normalises them
+    # first, and that normalised base64 is part of the cache key.
+    png = uploads.render_page(image_path.read_bytes())
+    image_b64 = base64.b64encode(png).decode()
+    transcription = transcribe(image_b64=image_b64, media_type="image/png")
     transcribed_latex = [s.latex for s in transcription.steps]
 
     step_metrics = compare_steps(transcribed_latex, entry["expected_steps"])
@@ -190,10 +188,9 @@ def print_summary(results: list[dict], total_entries: int) -> None:
 
     if not results:
         print()
-        print("Nothing could be evaluated -- every image in fixtures/ground_truth.json")
-        print("is a placeholder filename with no corresponding photograph yet. This")
-        print("script runs and reports honestly, rather than crashing or faking a")
-        print("number. Re-run once real handwritten scripts are photographed into")
+        print("Nothing could be evaluated -- no listed photograph is currently present.")
+        print("This script reports that honestly rather than crashing or faking a")
+        print("number. Re-run once handwritten scripts are photographed into")
         print(f"{IMAGES_DIR} and their filenames are added to fixtures/ground_truth.json.")
         return
 

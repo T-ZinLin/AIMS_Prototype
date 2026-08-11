@@ -1,0 +1,186 @@
+[
+  {
+    "id": "q1-correct-handwritten",
+    "title": "Fully correct handwritten solution",
+    "summary": "A clear factorisation that earns full marks and shows the complete photo-to-feedback workflow.",
+    "scenario": "correct",
+    "question_id": "q1",
+    "student_pseudonym": "Demo Student — Correct",
+    "image_filename": "0b9995255fbf-799957f0-485f-4958-8c7c-842e0ff6016b.jpg",
+    "transcription": {
+      "steps": [
+        {
+          "latex": "x^2 - 5x + 6 = (x-2)(x-3) = 0",
+          "confidence": "high"
+        },
+        {
+          "latex": "x = 2 \\text{ or } x = 3",
+          "confidence": "high"
+        }
+      ],
+      "notes": "Handwriting is clear; no crossings-out observed."
+    },
+    "confirmed_steps": [
+      "x^2 - 5x + 6 = (x-2)(x-3) = 0",
+      "x = 2 \\text{ or } x = 3"
+    ],
+    "expected_misconceptions": [],
+    "mark_response": {
+      "criteria": [
+        {
+          "criterion_id": "C1",
+          "proposed": 1,
+          "justification": "Step 1 presents the equation with zero on one side, suitable for factorising and applying the zero-product principle.",
+          "evidence_step": 1
+        },
+        {
+          "criterion_id": "C2",
+          "proposed": 3,
+          "justification": "Step 1 factorises the quadratic and Step 2 applies the zero-product principle, giving both roots with none lost or gained.",
+          "evidence_step": 2
+        },
+        {
+          "criterion_id": "C3",
+          "proposed": 2,
+          "justification": "The factors in Step 1 produce the two roots stated in Step 2, matching the symbolic verification.",
+          "evidence_step": 2
+        },
+        {
+          "criterion_id": "C4",
+          "proposed": 1,
+          "justification": "Step 2 states both solutions, x = 2 and x = 3, matching the verified solution set.",
+          "evidence_step": 2
+        },
+        {
+          "criterion_id": "C5",
+          "proposed": 1,
+          "justification": "Steps 1 and 2 are concise and logically ordered from factorisation to the two roots.",
+          "evidence_step": 2
+        }
+      ],
+      "misconceptions": []
+    },
+    "feedback_response": {
+      "what_went_well": "You factorised the quadratic correctly in Step 1 and used the zero-product principle in Step 2 to state both roots. The symbolic check confirms that no solutions were lost or gained, so this earns full marks.",
+      "what_went_wrong": "Nothing in your mathematics cost you a mark. For maximum clarity, you could split the chained equality in Step 1 into the original equation and the factorised equation on separate lines.",
+      "how_to_improve": "Keep the same method, but write x^2 - 5x + 6 = 0 and then (x - 2)(x - 3) = 0 on separate lines. That makes each transformation especially easy to audit.",
+      "references": [
+        "Notes §1 — factorising quadratics",
+        "Notes §2 — the zero-product principle"
+      ]
+    }
+  },
+  {
+    "id": "q2-divided-by-variable",
+    "title": "Lost root after dividing by x",
+    "summary": "The flagship misconception: correct arithmetic, but dividing by the unknown silently discards x = 0.",
+    "scenario": "lost_root",
+    "question_id": "q2",
+    "student_pseudonym": "Demo Student — Lost Root",
+    "image_filename": null,
+    "transcription": null,
+    "confirmed_steps": [
+      "x^2 = 5x",
+      "x = 5"
+    ],
+    "expected_misconceptions": [
+      "divided_by_variable_lost_root"
+    ],
+    "mark_response": {
+      "criteria": [
+        {
+          "criterion_id": "C1",
+          "proposed": 0,
+          "justification": "At Step 2 both sides were divided by x instead of rearranging so that one side is zero, so this criterion is not met.",
+          "evidence_step": 2
+        },
+        {
+          "criterion_id": "C2",
+          "proposed": 1,
+          "justification": "Symbolic checking shows that Step 2 loses x = 0. Partial credit is given because the remaining root x = 5 was obtained correctly.",
+          "evidence_step": 2
+        },
+        {
+          "criterion_id": "C3",
+          "proposed": 2,
+          "justification": "The arithmetic carried out in Step 2 is correct: for nonzero x, dividing 5x by x gives 5.",
+          "evidence_step": 2
+        },
+        {
+          "criterion_id": "C4",
+          "proposed": 0,
+          "justification": "Step 2 states only x = 5, while the verified solution set is x = 0 and x = 5.",
+          "evidence_step": 2
+        }
+      ],
+      "misconceptions": [
+        "divided_by_variable_lost_root"
+      ]
+    },
+    "feedback_response": {
+      "what_went_well": "You recognised that the equation could be simplified, and the arithmetic leading to x = 5 was correct.",
+      "what_went_wrong": "At Step 2 you divided both sides by x. That assumes x is not zero and silently discards the valid solution x = 0, so your final answer contains only one of the two roots.",
+      "how_to_improve": "Move everything to one side and factorise: x^2 - 5x = 0, then x(x - 5) = 0. Apply the zero-product principle to state both x = 0 and x = 5.",
+      "references": [
+        "Notes §2 — the zero-product principle"
+      ]
+    }
+  },
+  {
+    "id": "q4-dropped-plus-minus",
+    "title": "Dropped the second square-root branch",
+    "summary": "A sound completing-the-square method that keeps only one exact root and loses the ± branch at the final step.",
+    "scenario": "dropped_plus_minus",
+    "question_id": "q4",
+    "student_pseudonym": "Demo Student — Dropped ±",
+    "image_filename": null,
+    "transcription": null,
+    "confirmed_steps": [
+      "x^2 + 4x + 1 = 0",
+      "(x + 2)^2 - 3 = 0",
+      "x = -2 + \\sqrt{3}"
+    ],
+    "expected_misconceptions": [
+      "dropped_plus_minus"
+    ],
+    "mark_response": {
+      "criteria": [
+        {
+          "criterion_id": "C1",
+          "proposed": 1,
+          "justification": "Step 2 correctly rewrites the quadratic by completing the square, showing an appropriate exact method.",
+          "evidence_step": 2
+        },
+        {
+          "criterion_id": "C2",
+          "proposed": 2,
+          "justification": "Steps 1 and 2 preserve the solution set, but Step 3 keeps only one square-root branch and loses the second solution.",
+          "evidence_step": 3
+        },
+        {
+          "criterion_id": "C3",
+          "proposed": 1,
+          "justification": "The root stated in Step 3 is simplified correctly, but the matching negative square-root branch is missing.",
+          "evidence_step": 3
+        },
+        {
+          "criterion_id": "C4",
+          "proposed": 0,
+          "justification": "Step 3 states only x = -2 + sqrt(3); the verified solution set also contains x = -2 - sqrt(3).",
+          "evidence_step": 3
+        }
+      ],
+      "misconceptions": [
+        "dropped_plus_minus"
+      ]
+    },
+    "feedback_response": {
+      "what_went_well": "You completed the square correctly in Step 2 and the exact root you wrote in Step 3 is valid.",
+      "what_went_wrong": "At Step 3 you took only one square-root branch. Solving (x + 2)^2 = 3 requires both x + 2 = sqrt(3) and x + 2 = -sqrt(3), so one valid solution was lost.",
+      "how_to_improve": "Whenever you remove a square, write the ± sign before rearranging. Here, write x + 2 = ±sqrt(3), then state x = -2 + sqrt(3) and x = -2 - sqrt(3).",
+      "references": [
+        "Notes §3 — square roots and the plus-or-minus sign"
+      ]
+    }
+  }
+]

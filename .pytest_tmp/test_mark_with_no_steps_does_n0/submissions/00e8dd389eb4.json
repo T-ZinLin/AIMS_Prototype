@@ -1,0 +1,111 @@
+{
+  "id": "00e8dd389eb4",
+  "question_id": "q2",
+  "image_filename": null,
+  "source_page": null,
+  "source_page_count": null,
+  "transcription": null,
+  "confirmed_steps": null,
+  "verification": {
+    "steps": [],
+    "final_answer_correct": false,
+    "final_answer_verified": false,
+    "model_solutions": [
+      "0",
+      "5"
+    ],
+    "candidate_misconceptions": [],
+    "first_divergence_index": null,
+    "all_steps_parsed": true
+  },
+  "marks": {
+    "criteria": [
+      {
+        "criterion_id": "C1",
+        "proposed": 0,
+        "max": 2,
+        "justification": "stub",
+        "evidence_step": 1,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C2",
+        "proposed": 0,
+        "max": 3,
+        "justification": "stub",
+        "evidence_step": 1,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C3",
+        "proposed": 0,
+        "max": 2,
+        "justification": "stub",
+        "evidence_step": 1,
+        "overridden": false
+      },
+      {
+        "criterion_id": "C4",
+        "proposed": 0,
+        "max": 1,
+        "justification": "stub",
+        "evidence_step": 1,
+        "overridden": false
+      }
+    ],
+    "misconceptions": [
+      "divided_by_variable_lost_root"
+    ],
+    "warnings": [],
+    "total_proposed": 0,
+    "total_max": 8
+  },
+  "feedback": {
+    "what_went_well": "a",
+    "what_went_wrong": "b",
+    "how_to_improve": "c",
+    "references": []
+  },
+  "practice": [
+    {
+      "prompt_latex": "Solve $2x^2 = 12x$.",
+      "answer_latex": "x = 0, \\; x = 6",
+      "misconception_tag": "divided_by_variable_lost_root",
+      "template_id": "quad_zero_root",
+      "question_type": "bare",
+      "framing_id": "bare",
+      "admissible_roots": [
+        "0",
+        "6"
+      ],
+      "rejected_note": ""
+    },
+    {
+      "prompt_latex": "Solve $4x^2 = 4x$.",
+      "answer_latex": "x = 0, \\; x = 1",
+      "misconception_tag": "divided_by_variable_lost_root",
+      "template_id": "quad_zero_root",
+      "question_type": "bare",
+      "framing_id": "bare",
+      "admissible_roots": [
+        "0",
+        "1"
+      ],
+      "rejected_note": ""
+    },
+    {
+      "prompt_latex": "Solve $3x^2 = 4x$.",
+      "answer_latex": "x = 0, \\; x = \\frac{4}{3}",
+      "misconception_tag": "divided_by_variable_lost_root",
+      "template_id": "quad_zero_root",
+      "question_type": "bare",
+      "framing_id": "bare",
+      "admissible_roots": [
+        "0",
+        "4/3"
+      ],
+      "rejected_note": ""
+    }
+  ],
+  "student_pseudonym": "Student A"
+}

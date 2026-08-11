@@ -1,0 +1,48 @@
+{
+  "questions": {
+    "authored1": {
+      "id": "authored1",
+      "prompt": "Solve $x^2 - 7x + 12 = 0$ by any method.",
+      "model_solution_steps": [
+        "x^2 - 7x + 12 = 0",
+        "(x - 3)(x - 4) = 0",
+        "x = 3, x = 4"
+      ],
+      "variable": "x",
+      "topic_tag": "quadratics",
+      "criteria": [
+        {
+          "id": "C1",
+          "max": 2,
+          "description": "Solved it"
+        }
+      ],
+      "solution_image_filename": "solution-b1ff9c8ea3a7.png",
+      "solution_source_page": 1,
+      "solution_transcription": {
+        "steps": [
+          {
+            "index": 1,
+            "latex": "x^2 - 7x + 12 = 0",
+            "confidence": "high",
+            "edited_by_human": false
+          },
+          {
+            "index": 2,
+            "latex": "(x - 3)(x - 4) = 0",
+            "confidence": "high",
+            "edited_by_human": false
+          },
+          {
+            "index": 3,
+            "latex": "x = 3, x = 4",
+            "confidence": "low",
+            "edited_by_human": false
+          }
+        ],
+        "notes": ""
+      }
+    }
+  },
+  "deleted": []
+}

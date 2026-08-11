@@ -1,0 +1,8 @@
+{
+  "what_went_well": "You recognised that the equation could be simplified, and the arithmetic leading to x = 5 was correct.",
+  "what_went_wrong": "At Step 2 you divided both sides by x. That assumes x is not zero and silently discards the valid solution x = 0, so your final answer contains only one of the two roots.",
+  "how_to_improve": "Move everything to one side and factorise: x^2 - 5x = 0, then x(x - 5) = 0. Apply the zero-product principle to state both x = 0 and x = 5.",
+  "references": [
+    "Notes §2 — the zero-product principle"
+  ]
+}
